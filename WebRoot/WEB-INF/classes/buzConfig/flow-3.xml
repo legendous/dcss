@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow>
+	<task>
+		<index>1</index>
+		<content>问题汇报</content>
+		<stat>1</stat>
+		<user>张三</user>
+		<time>3/15 0:00 am</time>
+	</task>
+	<task>
+		<index>2</index>
+		<content>决定是否切换</content>
+		<stat>1</stat>
+		<user>领导</user>
+		<time>3/15 0:05 am</time>
+		<task>
+			<index>2-1</index>
+			<content>向领导汇报</content>
+			<stat>2</stat>
+			<user>张三</user>
+			<time>3/15 0:05 am</time>
+		</task>
+	</task>
+</flow>

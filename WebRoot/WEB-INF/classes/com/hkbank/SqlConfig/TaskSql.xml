@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+"http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+ 
+<!--namespace的作用是为这张表取一个名字，好在impl类中进行访问 -->
+<mapper namespace="com.hkbank.SqlConfig.TaskSql">
+	<!-- 查询流程列表 -->
+     <select id="getFlowList" resultType="java.util.HashMap">
+        select * from FLOW t
+		where t.flow_stat='0'
+		order by t.flow_id desc
+     </select>
+     
+     <!-- 插入一行任务数据 -->
+     <insert id="addTask">
+         INSERT INTO TASK(task_id,flow_id,task_name,task_content,task_stat,task_begin_time_plan
+         ,task_end_time_plan,task_begin_time_real,task_end_time_real,header_id,user_id
+         ,task_level,parent_task_id,front_task_id) 
+         VALUES(#{task_id},#{flow_id},#{task_name},#{task_content},#{task_stat}
+         ,#{task_begin_time_plan},#{task_end_time_plan},#{task_begin_time_real}
+         ,#{task_end_time_real},#{header_id},#{user_id},#{task_level},#{parent_task_id}
+         ,#{front_task_id})
+     </insert>
+     
+     <!-- 查询某流程的任务列表  将task_id分解成3个部分分别排序，避免“-”与数字排序的问题 -->
+     <select id="getTaskList" resultType="java.util.HashMap">
+     	select a.flow_id,d.flow_name,a.task_id,a.task_name,a.task_content,a.task_stat
+     	,to_char(a.task_begin_time_plan,#{time_mode}) task_begin_time_plan
+		,to_char(a.task_end_time_plan,#{time_mode}) task_end_time_plan
+		,to_char(a.task_begin_time_real,#{time_mode}) task_begin_time_real
+		,to_char(a.task_end_time_real,#{time_mode}) task_end_time_real
+		,a.task_level,a.parent_task_id
+		,a.front_task_id,a.task_stat_pre,c.user_id header_id,c.user_name header_name
+		
+		,to_number(substr(a.task_id,0,  --第一个数字，一定存在
+				 		  (case when instr(a.task_id,'-',1,1)=0 then length(a.task_id)
+         						else instr(a.task_id,'-',1,1)-1 
+         				   end))) task_id_1st
+		,to_number((case when instr(a.task_id,'-',1,1)=0 then '0'     --第二个数字，如果一个"-"都没有，则为0
+                 		 when instr(a.task_id,'-',1,1)>0 and instr(a.task_id,'-',1,2)=0 then  --如果只有一个"-"
+                    		substr(a.task_id,instr(a.task_id,'-',1,1)+1,length(a.task_id))
+                 		 else substr(a.task_id,instr(a.task_id,'-',1,1)+1,instr(a.task_id,'-',1,2)-instr(a.task_id,'-',1,1)-1)  --如果有两个"-"
+           		 	end)) task_id_2nd
+		,to_number((case when instr(a.task_id,'-',1,1)=0 then '0'     --第三个数字，如果一个"-"都没有，则为0
+       					 when instr(a.task_id,'-',1,1)>0 and instr(a.task_id,'-',1,2)=0 then '0' --如果只有一个"-"，则为0
+       					 else substr(a.task_id,instr(a.task_id,'-',1,2)+1,length(a.task_id)-instr(a.task_id,'-',1,2))         --如果有两个"-"
+  					end)) task_id_3rd
+		
+		from task a,task_allot b,users c,flow d
+		where a.task_id=b.task_id and a.flow_id=b.flow_id and a.flow_id=d.flow_id
+		and b.user_id=c.user_id and b.header='1'
+		and a.flow_id=#{flow_id}
+		order by a.flow_id,task_id_1st,task_id_2nd,task_id_3rd
+     </select>
+     
+     <!-- 根据flow_id task_id查询单一任务信息，如果参数中有user_id，则需看任务是否与用户关联-->
+     <select id="getTask" resultType="java.util.HashMap">
+         select a.flow_id,a.task_id,a.task_name,a.task_content,a.task_stat
+	     	,to_char(a.task_begin_time_plan,'yyyyMMdd HH24:Mi:SS') task_begin_time_plan
+			,to_char(a.task_end_time_plan,'yyyyMMdd HH24:Mi:SS') task_end_time_plan
+			,to_char(a.task_begin_time_real,'yyyyMMdd HH24:Mi:SS') task_begin_time_real
+			,to_char(a.task_end_time_real,'yyyyMMdd HH24:Mi:SS') task_end_time_real
+			,a.task_level,a.parent_task_id
+		 from TASK a
+	<if test="user_id != null">
+		, TASK_ALLOT b
+	</if>	 
+         where a.flow_id=#{flow_id} and a.task_id=#{task_id}
+	<if test="user_id != null">
+		and a.task_id=b.task_id and a.flow_id=b.flow_id and b.user_id=#{user_id}
+	</if>
+	</select>
+     
+     <!-- 查询过早开始的任务：即前置任务还未全部完成，自己就已开始的任务 -->
+     <select id="getTooEarlyTaskList" resultType="java.util.HashMap">
+     	select a.task_id,a.front_task_id
+		from TASK a, task b
+		where (a.front_task_id=b.task_id or a.front_task_id like b.task_id||',%' or a.front_task_id like '%,'||b.task_id||',%')
+		<![CDATA[ and b.task_stat<>'4' and a.task_stat<>'0' ]]>
+		and a.flow_id=b.flow_id and a.flow_id=#{flow_id}
+		order by a.task_id
+     </select>
+     
+     <!-- 获取参与者列表 -->
+     <select id="getTaskUsersList"  resultType="java.util.HashMap">
+    	select a.flow_id,a.task_id,c.user_id,c.user_name,c.user_depart,c.user_depart,c.user_telephone,c.user_mobile
+		from task a, task_allot b, users c
+		where a.flow_id=b.flow_id and a.task_id=b.task_id
+		and a.flow_id=#{flow_id} and a.task_id=#{task_id}
+		and b.user_id=c.user_id 
+		<![CDATA[ and b.header<>1 ]]>
+     </select>
+     
+	<!-- 修改任务信息 -->
+	<update id="updateTask">
+         update TASK a
+         set a.task_stat=#{task_stat}
+         <if test="task_begin_time_real != null">
+         	,a.task_begin_time_real = to_date(#{task_begin_time_real}, 'yyyyMMdd HH24:Mi:SS')
+		 </if>
+		 <if test="task_end_time_real != null">
+         	,a.task_end_time_real = to_date(#{task_end_time_real}, 'yyyyMMdd HH24:Mi:SS')
+		 </if>
+         where a.flow_id=#{flow_id} and a.task_id=#{task_id}
+	</update>
+	
+	<!-- 修改任务预提交状态 -->
+	<update id="updateTaskPre">
+         update TASK a
+         set a.task_stat_pre=#{task_stat}
+         where a.flow_id=#{flow_id} and a.task_id=#{task_id}
+	</update>
+     
+     <!-- 查询任务完成占比 -->
+     <select id="getTaskPercent" resultType="java.util.HashMap">
+     	select a.task_stat,round(count(a.task_stat)/(select count(1) from task a,flow b where a.flow_id=b.flow_id and b.flow_id=#{flow_id})*100) percent
+		from task a,flow b
+		where a.flow_id=b.flow_id
+		and b.flow_id=#{flow_id}
+		group by a.task_stat
+		order by a.task_stat
+     </select>
+     
+     <!-- 查询任务耗时 -->
+     <select id="getTaskExpend"  resultType="java.util.HashMap">
+		select a.task_id --时间全部化成分钟，并取整
+		       ,round((a.task_end_time_plan-a.task_begin_time_plan)*24*60) expendPlan
+		       ,case when (a.task_begin_time_real is null) then 0 --只要开始时间为空，则耗时为0
+		             when (a.task_begin_time_real is not null  --如果开始和结束时间都不为空，则两个相减
+		                   and a.task_end_time_real is not null )
+		             then round((a.task_end_time_real-a.task_begin_time_real)*24*60)
+		             else round((SYSDATE-a.task_begin_time_real)*24*60)  --如果开始时间不为空，但结束时间为空，则用当前时间减开始时间
+		        end expendReal
+		        ,to_number(substr(a.task_id,0,  --第一个数字，一定存在
+		                  (case when instr(a.task_id,'-',1,1)=0 then length(a.task_id)
+		                       else instr(a.task_id,'-',1,1)-1 
+		                  end))) task_id_1st
+		        ,to_number((case when instr(a.task_id,'-',1,1)=0 then '0'     --第二个数字，如果一个"-"都没有，则为0
+		                         when instr(a.task_id,'-',1,1)>0 and instr(a.task_id,'-',1,2)=0  --如果只有一个"-"
+		                              then substr(a.task_id,instr(a.task_id,'-',1,1)+1,length(a.task_id))
+		                         else substr(a.task_id,instr(a.task_id,'-',1,1)+1,instr(a.task_id,'-',1,2)-instr(a.task_id,'-',1,1)-1)  --如果有两个"-"
+		                  end)) task_id_2nd
+		      	,to_number((case when instr(a.task_id,'-',1,1)=0 then '0'     --第三个数字，如果一个"-"都没有，则为0
+		                         when instr(a.task_id,'-',1,1)>0 and instr(a.task_id,'-',1,2)=0 then '0' --如果只有一个"-"，则为0
+		                         else substr(a.task_id,instr(a.task_id,'-',1,2)+1,length(a.task_id)-instr(a.task_id,'-',1,2))         --如果有两个"-"
+		                  end)) task_id_3rd
+		from task a,flow b
+		where a.flow_id = b.flow_id
+		and b.flow_id=#{flow_id}
+		<![CDATA[ and instr(a.task_id,'-')<=0 ]]>	--只关注大任务
+		order by task_id_1st,task_id_2nd,task_id_3rd
+     </select>
+     
+	 <!-- 查询任务完成占比-分责任人统计 -->
+     <select id="getTaskProgress" resultType="java.util.HashMap">
+		select x.*
+		from
+		    (select c.user_id,c.user_name,CompleteTask.completeNum,TotolTask.totolNum,round((CompleteTask.completeNum/TotolTask.totolNum)*100) completePercent
+		    from
+		         (select MainTable.user_id, nvl(SubTable.subnum, 0) totolNum    --任务总数
+		          from (select distinct b.user_id
+		                from task a, task_allot b, users c
+		                where a.flow_id=#{flow_id} and a.task_level='2'
+		                and a.task_id=b.task_id and a.flow_id=b.flow_id and b.user_id=c.user_id) MainTable
+		          left join
+		               (select c.user_id,count(1) subnum
+		                from task a, task_allot b, users c
+		                where a.flow_id=#{flow_id} and a.task_level='2'
+		                and a.task_id=b.task_id and a.flow_id=b.flow_id and b.user_id=c.user_id
+		                group by c.user_id) SubTable
+		          on MainTable.user_id=SubTable.user_id) TotolTask,
+		          
+		        (select MainTable.user_id, nvl(SubTable.subnum, 0) completeNum     --已完成任务
+		        from (select distinct b.user_id
+		              from task a, task_allot b, users c
+		              where a.flow_id=#{flow_id} and a.task_level='2'
+		              and a.task_id=b.task_id and a.flow_id=b.flow_id and b.user_id=c.user_id) MainTable
+		        left join
+		             (select c.user_id,count(1) subnum
+		              from task a, task_allot b, users c
+		              where a.flow_id=#{flow_id} and a.task_level='2' and a.task_stat='4'
+		              and a.task_id=b.task_id and a.flow_id=b.flow_id and b.user_id=c.user_id
+		              group by c.user_id) SubTable
+		        on MainTable.user_id=SubTable.user_id) CompleteTask,
+		        
+		        users c
+		    where TotolTask.user_id=CompleteTask.user_id and TotolTask.user_id=c.user_id
+		    
+		    ) x, teamers y
+		where x.user_id=y.user_id and y.flow_id=#{flow_id}
+		order by y.leader
+     </select>
+</mapper>

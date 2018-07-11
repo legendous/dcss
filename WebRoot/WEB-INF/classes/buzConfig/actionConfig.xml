@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+	<!-- 卡式流程图页面跳转 -->
+	<action><!-- 与交易参数action对应 -->
+		<actionName>flowCards</actionName>
+		<params><!-- 交易所需要的参数 -->
+			<param>flow_id</param>
+			<param>actionName</param>
+		</params>
+		<target>flowCards</target><!-- 对应/DCSS/jsp/目录下 JSP的名字，需完全匹配  -->
+	</action>
+	
+	<!-- 流程表页面跳转 -->
+	<action><!-- 与交易参数action对应 -->
+		<actionName>flowTable</actionName>
+		<params><!-- 交易所需要的参数 -->
+			<param>flow_id</param>
+			<param>actionName</param>
+		</params>
+		<target>flowTable</target><!-- 对应/DCSS/jsp/目录下 JSP的名字，需完全匹配  -->
+	</action>
+	
+	<!-- 人员组织架构页面跳转 -->
+	<action><!-- 与交易参数action对应 -->
+		<actionName>organization</actionName>
+		<params><!-- 交易所需要的参数 -->
+			<param>flow_id</param>
+			<param>actionName</param>
+		</params>
+		<target>organization</target><!-- 对应/DCSS/jsp/目录下 JSP的名字，需完全匹配  -->
+	</action>
+	
+	<!-- 仪表盘页面跳转 -->
+	<action><!-- 与交易参数action对应 -->
+		<actionName>charts</actionName>
+		<params><!-- 交易所需要的参数 -->
+			<param>flow_id</param>
+			<param>actionName</param>
+		</params>
+		<target>charts</target><!-- 对应/DCSS/jsp/目录下 JSP的名字，需完全匹配  -->
+	</action>
+	
+	<!-- 进度页面跳转 -->
+	<action><!-- 与交易参数action对应 -->
+		<actionName>progress</actionName>
+		<params><!-- 交易所需要的参数 -->
+			<param>flow_id</param>
+			<param>actionName</param>
+		</params>
+		<target>progress</target><!-- 对应/DCSS/jsp/目录下 JSP的名字，需完全匹配  -->
+	</action>
+	
+	<!-- 组织者任务列表页面跳转 -->
+	<action><!-- 与交易参数action对应 -->
+		<actionName>taskTable</actionName>
+		<params><!-- 交易所需要的参数 -->
+			<param>flow_id</param>
+			<param>actionName</param>
+		</params>
+		<target>taskTable</target><!-- 对应/DCSS/jsp/目录下 JSP的名字，需完全匹配  -->
+	</action>
+	
+	<!-- 执行者任务列表页面跳转 -->
+	<action><!-- 与交易参数action对应 -->
+		<actionName>taskTable_Pre</actionName>
+		<params><!-- 交易所需要的参数 -->
+			<param>flow_id</param>
+			<param>actionName</param>
+		</params>
+		<target>taskTable_Pre</target><!-- 对应/DCSS/jsp/目录下 JSP的名字，需完全匹配  -->
+	</action>
+	
+	<!-- 流程文件上传页面跳转 -->
+	<action><!-- 与交易参数action对应 -->
+		<actionName>initFlow</actionName>
+		<params><!-- 交易所需要的参数 -->
+			<param>actionName</param>
+		</params>
+		<target>initFlow</target><!-- 对应/DCSS/jsp/目录下 JSP的名字，需完全匹配  -->
+	</action>
+	
+	<!-- Welcome页面跳转 -->
+	<action><!-- 与交易参数action对应 -->
+		<actionName>welcome</actionName>
+		<params><!-- 交易所需要的参数 -->
+			<param>flow_id</param>
+			<param>actionName</param>
+		</params>
+		<target>Welcome</target><!-- 对应/DCSS/jsp/目录下 JSP的名字，需完全匹配  -->
+	</action>
+</actions>

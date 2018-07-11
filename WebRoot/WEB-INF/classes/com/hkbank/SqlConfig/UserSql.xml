@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+"http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+ 
+<!--namespace的作用是为这张表取一个名字，好在impl类中进行访问 -->
+<mapper namespace="com.hkbank.SqlConfig.UserSql">
+     
+     <!-- 获取小组成员列表 小组ID正序，组长倒序 -->
+     <select id="getTeamersList"  resultType="java.util.HashMap">
+    	select c.flow_id,b.*,a.user_id,a.user_name,a.user_role,trim(a.user_depart)user_depart ,a.user_telephone,a.user_mobile,a.user_pwd
+		from users a,team b,teamers c
+		where a.user_id=c.user_id and c.team_id=b.team_id
+		and c.flow_id=#{flow_id}
+		order by b.team_id,c.leader,a.user_depart desc,a.user_name
+     </select>
+     
+	<!-- 修改任务信息 -->
+     <update id="updateTask">
+         update TASK a
+         set a.task_stat=#{task_stat}
+         <if test="task_begin_time_real != null">
+         	,a.task_begin_time_real = to_date(#{task_begin_time_real}, 'yyyyMMdd HH24:Mi:SS')
+		 </if>
+		 <if test="task_end_time_real != null">
+         	,a.task_end_time_real = to_date(#{task_end_time_real}, 'yyyyMMdd HH24:Mi:SS')
+		 </if>
+         where a.flow_id=#{flow_id} and a.task_id=#{task_id}
+     </update>
+     
+     <!-- 根据用户名密码获得用户信息 -->
+     <select id="getUser"  resultType="java.util.HashMap">
+    	select a.user_id,a.user_name,a.user_role,a.user_depart,a.user_telephone,a.user_mobile,a.user_pwd
+    	from USERS a
+		where a.user_id=#{user_id}
+     </select>
+</mapper>

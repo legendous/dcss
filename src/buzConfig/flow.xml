@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow>
+	<task>
+		<index>1</index>
+		<content>问题汇报</content>
+		<stat>1</stat>
+		<user>张三</user>
+		<time>3/15 0:00 am</time>
+	</task>
+	<task>
+		<index>2</index>
+		<content>决定是否切换</content>
+		<stat>1</stat>
+		<user>领导</user>
+		<time>3/15 0:05 am</time>
+		<task>
+			<index>2-1</index>
+			<content>向领导汇报</content>
+			<stat>2</stat>
+			<user>张三</user>
+			<time>3/15 0:05 am</time>
+		</task>
+		<task>
+			<index>2-2</index>
+			<content>发出切换命令</content>
+			<stat>2</stat>
+			<user>领导</user>
+			<time>3/15 0:05 am</time>
+		</task>
+	</task>
+	<task>
+		<index>3</index>
+		<content>停光谷应用</content>
+		<stat></stat><!-- 当有子步骤时，stat和user都写/ -->
+		<user></user>
+		<time>3/15 0:08 am</time>
+		<task>
+			<index>3-1</index>
+			<content>停服务</content>
+			<stat>2</stat>
+			<user>张三</user>
+			<time>3/15 0:08 am</time>
+			<task>
+				<index>3-1-1</index>
+				<content>停通讯</content>
+				<stat>2</stat>
+				<user>张三</user>
+				<time>3/15 0:08 am</time>
+			</task>
+			<task>
+				<index>3-1-2</index>
+				<content>停主应用</content>
+				<stat>4</stat>
+				<user>张三</user>
+				<time>3/15 0:10 am</time>
+			</task>
+		</task>
+		<task>
+			<index>3-2</index>
+			<content>停数据库</content>
+			<stat>3</stat>
+			<user>李四</user>
+			<time>3/15 0:15 am</time>
+		</task>
+	</task>
+	<task>
+		<index>4</index>
+		<content>启汉口应用</content>
+		<stat>0</stat>
+		<user>领导</user>
+		<time>3/15 0:20 am</time>
+	</task>
+</flow>
